@@ -163,7 +163,7 @@ static int ExtentsOp(ClientData clientData, Tcl_Interp* interp,
 {
   Graph* graphPtr = (Graph*)clientData;
   GraphOptions* ops = (GraphOptions*)graphPtr->ops_;
-  int length;
+  Tcl_Size length;
   const char* string = Tcl_GetStringFromObj(objv[2], &length);
   char c = string[0];
   if ((c == 'p') && (length > 4) && 
@@ -456,7 +456,7 @@ void DisplayGraph(ClientData clientData)
 }
 
 // called by Tcl_EventuallyFree and others
-void DestroyGraph(char* dataPtr)
+void DestroyGraph(void* dataPtr)
 {
   Graph* graphPtr = (Graph*)dataPtr;
   delete graphPtr;

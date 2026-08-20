@@ -41,43 +41,43 @@ using namespace Blt;
 
 static Tk_OptionSpec optionSpecs[] = {
   {TK_OPTION_CUSTOM, "-bindtags", "bindTags", "BindTags", 
-   "Polygon all", -1, Tk_Offset(PolygonMarkerOptions, tags), 
+   "Polygon all", -1, offsetof(PolygonMarkerOptions, tags), 
    TK_OPTION_NULL_OK, &listObjOption, 0},
   {TK_OPTION_CUSTOM, "-cap", "cap", "Cap", 
-   "butt", -1, Tk_Offset(PolygonMarkerOptions, capStyle),
+   "butt", -1, offsetof(PolygonMarkerOptions, capStyle),
    0, &capStyleObjOption, 0},
   {TK_OPTION_CUSTOM, "-coords", "coords", "Coords",
-   NULL, -1, Tk_Offset(PolygonMarkerOptions, worldPts), 
+   NULL, -1, offsetof(PolygonMarkerOptions, worldPts), 
    TK_OPTION_NULL_OK, &coordsObjOption, 0},
   {TK_OPTION_CUSTOM, "-dashes", "dashes", "Dashes",
-   NULL, -1, Tk_Offset(PolygonMarkerOptions, dashes), 
+   NULL, -1, offsetof(PolygonMarkerOptions, dashes), 
    TK_OPTION_NULL_OK, &dashesObjOption, 0},
   {TK_OPTION_STRING, "-element", "element", "Element", 
-   NULL, -1, Tk_Offset(PolygonMarkerOptions, elemName),
+   NULL, -1, offsetof(PolygonMarkerOptions, elemName),
    TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_COLOR, "-fill", "fill", "Fill", 
-   NULL, -1, Tk_Offset(PolygonMarkerOptions, fill),
+   NULL, -1, offsetof(PolygonMarkerOptions, fill),
    TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_CUSTOM, "-join", "join", "Join", 
-   "miter", -1, Tk_Offset(PolygonMarkerOptions, joinStyle),
+   "miter", -1, offsetof(PolygonMarkerOptions, joinStyle),
    0, &joinStyleObjOption, 0},
   {TK_OPTION_PIXELS, "-linewidth", "lineWidth", "LineWidth",
-   "1", -1, Tk_Offset(PolygonMarkerOptions, lineWidth), 0, NULL, 0},
+   "1", -1, offsetof(PolygonMarkerOptions, lineWidth), 0, NULL, 0},
   {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", 
-   "no", -1, Tk_Offset(PolygonMarkerOptions, hide), 0, NULL, 0},
+   "no", -1, offsetof(PolygonMarkerOptions, hide), 0, NULL, 0},
   {TK_OPTION_CUSTOM, "-mapx", "mapX", "MapX",
-   "x", -1, Tk_Offset(PolygonMarkerOptions, xAxis), 0, &xAxisObjOption, 0},
+   "x", -1, offsetof(PolygonMarkerOptions, xAxis), 0, &xAxisObjOption, 0},
   {TK_OPTION_CUSTOM, "-mapy", "mapY", "MapY", 
-   "y", -1, Tk_Offset(PolygonMarkerOptions, yAxis), 0, &yAxisObjOption, 0},
+   "y", -1, offsetof(PolygonMarkerOptions, yAxis), 0, &yAxisObjOption, 0},
   {TK_OPTION_COLOR, "-outline", "outline", "Outline", 
-   STD_NORMAL_FOREGROUND, -1, Tk_Offset(PolygonMarkerOptions, outline), 
+   STD_NORMAL_FOREGROUND, -1, offsetof(PolygonMarkerOptions, outline), 
    TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_BOOLEAN, "-under", "under", "Under",
-   "no", -1, Tk_Offset(PolygonMarkerOptions, drawUnder), 0, NULL, CACHE},
+   "no", -1, offsetof(PolygonMarkerOptions, drawUnder), 0, NULL, CACHE},
   {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset",
-   "0", -1, Tk_Offset(PolygonMarkerOptions, xOffset), 0, NULL, 0},
+   "0", -1, offsetof(PolygonMarkerOptions, xOffset), 0, NULL, 0},
   {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset",
-   "0", -1, Tk_Offset(PolygonMarkerOptions, yOffset), 0, NULL, 0},
+   "0", -1, offsetof(PolygonMarkerOptions, yOffset), 0, NULL, 0},
   {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, -1, 0, 0, 0}
 };
 
@@ -296,3 +296,74 @@ void PolygonMarker::print(PSOutput* psPtr)
   }
 }
 
+static Tcl_Obj* PolygonMarkerPdfColorObj(XColor* colorPtr)
+{
+  if (!colorPtr)
+    return Tcl_NewStringObj("", -1);
+
+  char buf[16];
+  snprintf(buf, sizeof(buf), "#%02x%02x%02x",
+	   colorPtr->red >> 8, colorPtr->green >> 8, colorPtr->blue >> 8);
+  return Tcl_NewStringObj(buf, -1);
+}
+
+static Tcl_Obj* PolygonMarkerPdfDashesObj(Dashes* dashesPtr)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  if (!dashesPtr || !LineIsDashed(*dashesPtr))
+    return listObjPtr;
+
+  for (int ii=0; ii<12 && dashesPtr->values[ii] != 0; ii++)
+    Tcl_ListObjAppendElement(NULL, listObjPtr,
+			     Tcl_NewIntObj(dashesPtr->values[ii]));
+
+  return listObjPtr;
+}
+
+static Tcl_Obj* PolygonMarkerPdfPointsObj(Point2d* points, int count)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<count; ii++) {
+    Tcl_ListObjAppendElement(NULL, listObjPtr, Tcl_NewDoubleObj(points[ii].x));
+    Tcl_ListObjAppendElement(NULL, listObjPtr, Tcl_NewDoubleObj(points[ii].y));
+  }
+
+  return listObjPtr;
+}
+
+static Tcl_Obj* PolygonMarkerPdfSegmentsObj(Segment2d* segments, int count)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<count; ii++) {
+    Tcl_Obj* segObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].p.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].p.y));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].q.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].q.y));
+    Tcl_ListObjAppendElement(NULL, listObjPtr, segObjPtr);
+  }
+
+  return listObjPtr;
+}
+
+void PolygonMarker::appendPdfData(Tcl_Interp* interp, Tcl_Obj* dictObjPtr)
+{
+  PolygonMarkerOptions* ops = (PolygonMarkerOptions*)ops_;
+
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("fill", -1),
+		 PolygonMarkerPdfColorObj(ops->fill));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("outline", -1),
+		 PolygonMarkerPdfColorObj(ops->outline));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("linewidth", -1),
+		 Tcl_NewIntObj(ops->lineWidth));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("dashes", -1),
+		 PolygonMarkerPdfDashesObj(&ops->dashes));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("fillpoints", -1),
+		 PolygonMarkerPdfPointsObj(fillPts_, nFillPts_));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("outlineSegments", -1),
+		 PolygonMarkerPdfSegmentsObj(outlinePts_, nOutlinePts_));
+}

@@ -39,6 +39,11 @@ using namespace std;
 
 #include "tkbltSwitch.h"
 
+/* Tcl 8.6 compatibility for APIs that use Tcl_Size in Tcl 8.7/9. */
+#ifndef TCL_SIZE_MAX
+typedef int Tcl_Size;
+#endif
+
 using namespace Blt;
 
 #define COUNT_NNEG		0
@@ -221,7 +226,7 @@ static int DoSwitch(Tcl_Interp* interp, Blt_SwitchSpec *sp,
 
     case BLT_SWITCH_LIST:
       {
-	int argc;
+	Tcl_Size argc;
 
 	if (Tcl_SplitList(interp, Tcl_GetString(objPtr), &argc, 
 			  (const char ***)ptr) != TCL_OK) {
@@ -315,7 +320,7 @@ int Blt::ParseSwitches(Tcl_Interp* interp, Blt_SwitchSpec *specs,
   int count;
   for (count = 0; count < objc; count++) {
     char *arg;
-    int length;
+    Tcl_Size length;
 
     arg = Tcl_GetStringFromObj(objv[count], &length);
     if (flags & BLT_SWITCH_OBJV_PARTIAL) {

@@ -63,11 +63,11 @@ Tk_ObjCustomOption dashesObjOption =
 
 static int DashesSetProc(ClientData clientData, Tcl_Interp *interp,
 			 Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			 int offset, char* save, int flags)
+			 Tcl_Size offset, char* save, int flags)
 {
   Dashes* dashesPtr = (Dashes*)(widgRec + offset);
 
-  int length;
+  Tcl_Size length;
   const char* string = Tcl_GetStringFromObj(*objPtr, &length);
   if (!string || !string[0]) {
     dashesPtr->values[0] = 0;
@@ -97,7 +97,7 @@ static int DashesSetProc(ClientData clientData, Tcl_Interp *interp,
     dashesPtr->values[4] = 0;
   }
   else {
-    int objc;
+    Tcl_Size objc;
     Tcl_Obj** objv;
     if (Tcl_ListObjGetElements(interp, *objPtr, &objc, &objv) != TCL_OK)
       return TCL_ERROR;
@@ -136,7 +136,7 @@ static int DashesSetProc(ClientData clientData, Tcl_Interp *interp,
 };
 
 static Tcl_Obj* DashesGetProc(ClientData clientData, Tk_Window tkwin, 
-			     char *widgRec, int offset)
+			      char *widgRec, Tcl_Size offset)
 {
   Dashes* dashesPtr = (Dashes*)(widgRec + offset);
 
@@ -168,7 +168,7 @@ Tk_ObjCustomOption listObjOption =
 
 static int ListSetProc(ClientData clientData, Tcl_Interp *interp,
 		       Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-		       int offset, char* savePtr, int flags)
+		       Tcl_Size offset, char* savePtr, int flags)
 {
   const char*** listPtr = (const char***)(widgRec + offset);
   *(double*)savePtr = *(double*)listPtr;
@@ -177,7 +177,7 @@ static int ListSetProc(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
 
   const char** argv;
-  int argc;
+  Tcl_Size argc;
   if (Tcl_SplitList(interp, Tcl_GetString(*objPtr), &argc, &argv) != TCL_OK)
     return TCL_ERROR;
 
@@ -187,7 +187,7 @@ static int ListSetProc(ClientData clientData, Tcl_Interp *interp,
 };
 
 static Tcl_Obj* ListGetProc(ClientData clientData, Tk_Window tkwin, 
-			    char *widgRec, int offset)
+			    char *widgRec, Tcl_Size offset)
 {
   const char*** listPtr = (const char***)(widgRec + offset);
 
@@ -209,8 +209,7 @@ static Tcl_Obj* ListGetProc(ClientData clientData, Tk_Window tkwin,
   return listObjPtr;
 };
 
-static void ListFreeProc(ClientData clientData, Tk_Window tkwin,
-			 char *ptr)
+static void ListFreeProc(ClientData clientData, Tk_Window tkwin, char *ptr)
 {
   const char** argv = *(const char***)ptr;
   if (argv)

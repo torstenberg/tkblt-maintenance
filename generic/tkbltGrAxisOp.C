@@ -36,6 +36,7 @@
 #include "tkbltGrAxis.h"
 #include "tkbltGrAxisOp.h"
 #include "tkbltGrMisc.h"
+#include "tkbltGrText.h"
 #include "tkbltInt.h"
 
 using namespace Blt;
@@ -299,6 +300,38 @@ static int TransformOp(ClientData clientData, Tcl_Interp* interp,
   return AxisTransformOp(axisPtr, interp, objc-1, objv+1);
 }
 
+static int TicksOp(ClientData clientData, Tcl_Interp* interp,
+		   int objc, Tcl_Obj* const objv[])
+{
+  Graph* graphPtr = (Graph*)clientData;
+  if (objc!=4) {
+    Tcl_WrongNumArgs(interp, 3, objv, "axisId");
+    return TCL_ERROR;
+  }
+
+  Axis* axisPtr;
+  if (graphPtr->getAxis(objv[3], &axisPtr) != TCL_OK)
+    return TCL_ERROR;
+
+  return AxisTicksOp(axisPtr, interp, objc-1, objv+1);
+}
+
+static int PdfDataOp(ClientData clientData, Tcl_Interp* interp,
+		     int objc, Tcl_Obj* const objv[])
+{
+  Graph* graphPtr = (Graph*)clientData;
+  if (objc!=4) {
+    Tcl_WrongNumArgs(interp, 3, objv, "axisId");
+    return TCL_ERROR;
+  }
+
+  Axis* axisPtr;
+  if (graphPtr->getAxis(objv[3], &axisPtr) != TCL_OK)
+    return TCL_ERROR;
+
+  return AxisPdfDataOp(axisPtr, interp, objc-1, objv+1);
+}
+
 static int TypeOp(ClientData clientData, Tcl_Interp* interp, 
 		  int objc, Tcl_Obj* const objv[])
 {
@@ -343,6 +376,8 @@ const Ensemble Blt::axisEnsemble[] = {
   {"limits",       LimitsOp, 0},
   {"margin",       MarginOp, 0},
   {"names",        NamesOp, 0},
+  {"pdfdata",      PdfDataOp, 0},
+  {"ticks",        TicksOp, 0},
   {"transform",    TransformOp, 0},
   {"type",         TypeOp, 0},
   {"view",         ViewOp, 0},
@@ -379,7 +414,7 @@ static int GetAxisScrollInfo(Tcl_Interp* interp,
   const char *string;
   char c;
   double offset;
-  int length;
+  Tcl_Size length;
 
   offset = *offsetPtr;
   string = Tcl_GetStringFromObj(objv[0], &length);
@@ -576,6 +611,290 @@ int AxisTransformOp(Axis* axisPtr, Tcl_Interp* interp,
   return TCL_OK;
 }
 
+int AxisTicksOp(Axis* axisPtr, Tcl_Interp* interp,
+		int objc, Tcl_Obj* const objv[])
+{
+  AxisOptions* ops = (AxisOptions*)axisPtr->ops();
+  Graph* graphPtr = axisPtr->graphPtr_;
+
+  graphPtr->map();
+
+  Ticks* ticksPtr = ops->t1UPtr ? ops->t1UPtr : axisPtr->t1Ptr_;
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  if (!ops->showTicks || !ticksPtr) {
+    Tcl_SetObjResult(interp, listObjPtr);
+    return TCL_OK;
+  }
+
+  ChainLink* link = Chain_FirstLink(axisPtr->tickLabels_);
+  for (int ii=0; ii<ticksPtr->nTicks; ii++) {
+    double value = ticksPtr->values[ii];
+    double labelValue = value;
+    if (ops->labelOffset)
+      labelValue += axisPtr->majorSweep_.step * 0.5;
+
+    if (!axisPtr->inRange(labelValue, &axisPtr->axisRange_))
+      continue;
+    if (!link)
+      break;
+
+    TickLabel* labelPtr = (TickLabel*)Chain_GetValue(link);
+    link = Chain_NextLink(link);
+
+    if (ops->logScale)
+      value = EXP10(value);
+
+    Tcl_Obj* tickObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+    Tcl_ListObjAppendElement(interp, tickObjPtr, Tcl_NewDoubleObj(value));
+    Tcl_ListObjAppendElement(interp, tickObjPtr,
+			     Tcl_NewStringObj(labelPtr->string, -1));
+    Tcl_ListObjAppendElement(interp, tickObjPtr,
+			     Tcl_NewDoubleObj(labelPtr->anchorPos.x));
+    Tcl_ListObjAppendElement(interp, tickObjPtr,
+			     Tcl_NewDoubleObj(labelPtr->anchorPos.y));
+    Tcl_ListObjAppendElement(interp, listObjPtr, tickObjPtr);
+  }
+
+  Tcl_SetObjResult(interp, listObjPtr);
+  return TCL_OK;
+}
+
+static Tcl_Obj* AxisPdfColorObj(XColor* colorPtr)
+{
+  if (!colorPtr)
+    return Tcl_NewStringObj("", -1);
+
+  char buf[16];
+  snprintf(buf, sizeof(buf), "#%02x%02x%02x",
+	   colorPtr->red >> 8, colorPtr->green >> 8, colorPtr->blue >> 8);
+  return Tcl_NewStringObj(buf, -1);
+}
+
+static Tcl_Obj* AxisPdfSegmentsObj(Segment2d* segments, int count)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<count; ii++) {
+    Tcl_Obj* segObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].p.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].p.y));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].q.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segments[ii].q.y));
+    Tcl_ListObjAppendElement(NULL, listObjPtr, segObjPtr);
+  }
+
+  return listObjPtr;
+}
+
+static Tcl_Obj* AxisPdfDashesObj(Dashes* dashesPtr)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  if (!dashesPtr)
+    return listObjPtr;
+
+  for (int ii=0; dashesPtr->values[ii]; ii++)
+    Tcl_ListObjAppendElement(NULL, listObjPtr,
+			     Tcl_NewIntObj(dashesPtr->values[ii]));
+
+  return listObjPtr;
+}
+
+static void AxisPdfAppendGridSegment(Tcl_Obj* listObjPtr, Axis* axisPtr,
+				     double value)
+{
+  AxisOptions* ops = (AxisOptions*)axisPtr->ops();
+  Graph* graphPtr = axisPtr->graphPtr_;
+
+  if (ops->logScale)
+    value = EXP10(value);
+
+  Tcl_Obj* segObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  if (axisPtr->isHorizontal()) {
+    double x = axisPtr->hMap(value);
+    Tcl_ListObjAppendElement(NULL, segObjPtr, Tcl_NewDoubleObj(x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(graphPtr->top_));
+    Tcl_ListObjAppendElement(NULL, segObjPtr, Tcl_NewDoubleObj(x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(graphPtr->bottom_));
+  }
+  else {
+    double y = axisPtr->vMap(value);
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(graphPtr->left_));
+    Tcl_ListObjAppendElement(NULL, segObjPtr, Tcl_NewDoubleObj(y));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(graphPtr->right_));
+    Tcl_ListObjAppendElement(NULL, segObjPtr, Tcl_NewDoubleObj(y));
+  }
+  Tcl_ListObjAppendElement(NULL, listObjPtr, segObjPtr);
+}
+
+static Tcl_Obj* AxisPdfGridSegmentsObj(Axis* axisPtr, int minor)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+
+  Ticks* t1Ptr = axisPtr->t1Ptr_;
+  if (!t1Ptr)
+    t1Ptr = axisPtr->generateTicks(&axisPtr->majorSweep_);
+
+  Ticks* t2Ptr = NULL;
+  if (minor) {
+    t2Ptr = axisPtr->t2Ptr_;
+    if (!t2Ptr)
+      t2Ptr = axisPtr->generateTicks(&axisPtr->minorSweep_);
+  }
+
+  if (minor) {
+    for (int ii=0; t1Ptr && ii<t1Ptr->nTicks; ii++) {
+      double value = t1Ptr->values[ii];
+      for (int jj=0; t2Ptr && jj<t2Ptr->nTicks; jj++) {
+	double subValue = value + (axisPtr->majorSweep_.step*t2Ptr->values[jj]);
+	if (axisPtr->inRange(subValue, &axisPtr->axisRange_))
+	  AxisPdfAppendGridSegment(listObjPtr, axisPtr, subValue);
+      }
+    }
+  }
+  else {
+    for (int ii=0; t1Ptr && ii<t1Ptr->nTicks; ii++) {
+      double value = t1Ptr->values[ii];
+      if (axisPtr->inRange(value, &axisPtr->axisRange_))
+	AxisPdfAppendGridSegment(listObjPtr, axisPtr, value);
+    }
+  }
+
+  if (t1Ptr != axisPtr->t1Ptr_)
+    delete t1Ptr;
+  if (t2Ptr && t2Ptr != axisPtr->t2Ptr_)
+    delete t2Ptr;
+
+  return listObjPtr;
+}
+
+static const char* AxisPdfAnchorName(Tk_Anchor anchor)
+{
+  switch (anchor) {
+  case TK_ANCHOR_N: return "n";
+  case TK_ANCHOR_NE: return "ne";
+  case TK_ANCHOR_E: return "e";
+  case TK_ANCHOR_SE: return "se";
+  case TK_ANCHOR_S: return "s";
+  case TK_ANCHOR_SW: return "sw";
+  case TK_ANCHOR_W: return "w";
+  case TK_ANCHOR_NW: return "nw";
+  case TK_ANCHOR_CENTER:
+  default:
+    return "center";
+  }
+}
+
+int AxisPdfDataOp(Axis* axisPtr, Tcl_Interp* interp,
+		  int objc, Tcl_Obj* const objv[])
+{
+  AxisOptions* ops = (AxisOptions*)axisPtr->ops();
+  Graph* graphPtr = axisPtr->graphPtr_;
+
+  graphPtr->map();
+
+  Tcl_Obj* dictObjPtr = Tcl_NewDictObj();
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("name", -1),
+		 Tcl_NewStringObj(axisPtr->name_, -1));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("hide", -1),
+		 Tcl_NewIntObj(ops->hide));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("use", -1),
+		 Tcl_NewIntObj(axisPtr->use_));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("horizontal", -1),
+		 Tcl_NewIntObj(axisPtr->isHorizontal()));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("margin", -1),
+		 Tcl_NewStringObj(axisPtr->use_ ?
+				  axisNames[axisPtr->margin_].name : "", -1));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("foreground", -1),
+		 AxisPdfColorObj(axisPtr->active_ ?
+				 ops->activeFgColor : ops->tickColor));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("linewidth", -1),
+		 Tcl_NewIntObj(ops->lineWidth));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("segments", -1),
+		 AxisPdfSegmentsObj(axisPtr->segments_, axisPtr->nSegments_));
+
+  Tcl_Obj* gridObjPtr = Tcl_NewDictObj();
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("show", -1),
+		 Tcl_NewIntObj(ops->showGrid));
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("color", -1),
+		 AxisPdfColorObj(ops->major.color));
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("linewidth", -1),
+		 Tcl_NewIntObj(ops->major.lineWidth));
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("dashes", -1),
+		 AxisPdfDashesObj(&ops->major.dashes));
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("segments", -1),
+		 AxisPdfGridSegmentsObj(axisPtr, 0));
+
+  Tcl_Obj* minorGridObjPtr = Tcl_NewDictObj();
+  Tcl_DictObjPut(interp, minorGridObjPtr, Tcl_NewStringObj("show", -1),
+		 Tcl_NewIntObj(ops->showGridMinor));
+  Tcl_DictObjPut(interp, minorGridObjPtr, Tcl_NewStringObj("color", -1),
+		 AxisPdfColorObj(ops->minor.color));
+  Tcl_DictObjPut(interp, minorGridObjPtr, Tcl_NewStringObj("linewidth", -1),
+		 Tcl_NewIntObj(ops->minor.lineWidth));
+  Tcl_DictObjPut(interp, minorGridObjPtr, Tcl_NewStringObj("dashes", -1),
+		 AxisPdfDashesObj(&ops->minor.dashes));
+  Tcl_DictObjPut(interp, minorGridObjPtr, Tcl_NewStringObj("segments", -1),
+		 AxisPdfGridSegmentsObj(axisPtr, 1));
+  Tcl_DictObjPut(interp, gridObjPtr, Tcl_NewStringObj("minor", -1),
+		 minorGridObjPtr);
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("grid", -1),
+		 gridObjPtr);
+
+  Tcl_Obj* ticksObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  if (ops->showTicks) {
+    for (ChainLink* link = Chain_FirstLink(axisPtr->tickLabels_); link;
+	 link = Chain_NextLink(link)) {
+      TickLabel* labelPtr = (TickLabel*)Chain_GetValue(link);
+      Tcl_Obj* tickObjPtr = Tcl_NewDictObj();
+      Tcl_DictObjPut(interp, tickObjPtr, Tcl_NewStringObj("label", -1),
+		     Tcl_NewStringObj(labelPtr->string, -1));
+      Tcl_DictObjPut(interp, tickObjPtr, Tcl_NewStringObj("x", -1),
+		     Tcl_NewDoubleObj(labelPtr->anchorPos.x));
+      Tcl_DictObjPut(interp, tickObjPtr, Tcl_NewStringObj("y", -1),
+		     Tcl_NewDoubleObj(labelPtr->anchorPos.y));
+      Tcl_DictObjPut(interp, tickObjPtr, Tcl_NewStringObj("anchor", -1),
+		     Tcl_NewStringObj(AxisPdfAnchorName(axisPtr->tickAnchor_), -1));
+      Tcl_DictObjPut(interp, tickObjPtr, Tcl_NewStringObj("angle", -1),
+		     Tcl_NewDoubleObj(ops->tickAngle));
+      Tcl_ListObjAppendElement(interp, ticksObjPtr, tickObjPtr);
+    }
+  }
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("ticks", -1),
+		 ticksObjPtr);
+
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("tickfont", -1),
+		 Tcl_NewStringObj(Tk_NameOfFont(ops->tickFont), -1));
+
+  Tcl_Obj* titleObjPtr = Tcl_NewDictObj();
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("text", -1),
+		 Tcl_NewStringObj(ops->title ? ops->title : "", -1));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("x", -1),
+		 Tcl_NewDoubleObj(axisPtr->titlePos_.x));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("y", -1),
+		 Tcl_NewDoubleObj(axisPtr->titlePos_.y));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("anchor", -1),
+		 Tcl_NewStringObj(AxisPdfAnchorName(axisPtr->titleAnchor_), -1));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("angle", -1),
+		 Tcl_NewDoubleObj(axisPtr->titleAngle_));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("font", -1),
+		 Tcl_NewStringObj(Tk_NameOfFont(ops->titleFont), -1));
+  Tcl_DictObjPut(interp, titleObjPtr, Tcl_NewStringObj("color", -1),
+		 AxisPdfColorObj(axisPtr->active_ ?
+				 ops->activeFgColor : ops->titleColor));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("title", -1),
+		 titleObjPtr);
+
+  Tcl_SetObjResult(interp, dictObjPtr);
+  return TCL_OK;
+}
+
 int AxisTypeOp(Axis* axisPtr, Tcl_Interp* interp, 
 	       int objc, Tcl_Obj* const objv[])
 {
@@ -673,4 +992,3 @@ int AxisViewOp(Axis* axisPtr, Tcl_Interp* interp,
 
   return TCL_OK;
 }
-

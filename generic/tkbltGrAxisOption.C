@@ -55,7 +55,7 @@ Tk_ObjCustomOption yAxisObjOption =
 
 static int AxisSetProc(ClientData clientData, Tcl_Interp* interp,
 		       Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-		       int offset, char* savePtr, int flags)
+		       Tcl_Size offset, char* savePtr, int flags)
 {
   Axis** axisPtrPtr = (Axis**)(widgRec + offset);
   *(double*)savePtr = *(double*)axisPtrPtr;
@@ -94,7 +94,7 @@ static int AxisSetProc(ClientData clientData, Tcl_Interp* interp,
 };
 
 static Tcl_Obj* AxisGetProc(ClientData clientData, Tk_Window tkwin, 
-			    char *widgRec, int offset)
+			    char *widgRec, Tcl_Size offset)
 {
   Axis* axisPtr = *(Axis**)(widgRec + offset);
   if (!axisPtr)
@@ -122,7 +122,7 @@ Tk_ObjCustomOption limitObjOption =
 
 static int LimitSetProc(ClientData clientData, Tcl_Interp* interp,
 			Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			int offset, char* save, int flags)
+			Tcl_Size offset, char* save, int flags)
 {
   double* limitPtr = (double*)(widgRec + offset);
   const char* string = Tcl_GetString(*objPtr);
@@ -138,7 +138,7 @@ static int LimitSetProc(ClientData clientData, Tcl_Interp* interp,
 }
 
 static Tcl_Obj* LimitGetProc(ClientData clientData, Tk_Window tkwin, 
-			     char *widgRec, int offset)
+			     char *widgRec, Tcl_Size offset)
 {
   double limit = *(double*)(widgRec + offset);
   Tcl_Obj* objPtr;
@@ -161,7 +161,7 @@ Tk_ObjCustomOption ticksObjOption =
 
 static int TicksSetProc(ClientData clientData, Tcl_Interp* interp,
 			Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			int offset, char* savePtr, int flags)
+			Tcl_Size offset, char* savePtr, int flags)
 {
   Ticks** ticksPtrPtr = (Ticks**)(widgRec + offset);
   *(double*)savePtr = *(double*)ticksPtrPtr;
@@ -169,7 +169,7 @@ static int TicksSetProc(ClientData clientData, Tcl_Interp* interp,
   if (!ticksPtrPtr)
     return TCL_OK;
 
-  int objc;
+  Tcl_Size objc;
   Tcl_Obj** objv;
   if (Tcl_ListObjGetElements(interp, *objPtr, &objc, &objv) != TCL_OK)
     return TCL_ERROR;
@@ -194,7 +194,7 @@ static int TicksSetProc(ClientData clientData, Tcl_Interp* interp,
 }
 
 static Tcl_Obj* TicksGetProc(ClientData clientData, Tk_Window tkwin, 
-			     char *widgRec, int offset)
+			     char *widgRec, Tcl_Size offset)
 {
   Ticks* ticksPtr = *(Ticks**)(widgRec + offset);
 
@@ -212,8 +212,7 @@ static Tcl_Obj* TicksGetProc(ClientData clientData, Tk_Window tkwin,
   return listObjPtr;
 }
 
-static void TicksFreeProc(ClientData clientData, Tk_Window tkwin,
-			 char *ptr)
+static void TicksFreeProc(ClientData clientData, Tk_Window tkwin, char *ptr)
 {
   Ticks* ticksPtr = *(Ticks**)ptr;
   delete ticksPtr;
@@ -228,8 +227,8 @@ Tk_ObjCustomOption objectObjOption =
   };
 
 static int ObjectSetProc(ClientData clientData, Tcl_Interp* interp,
-			Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			int offset, char* savePtr, int flags)
+			 Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
+			 Tcl_Size offset, char* savePtr, int flags)
 {
   Tcl_Obj** objectPtrPtr = (Tcl_Obj**)(widgRec + offset);
   *(double*)savePtr = *(double*)objectPtrPtr;
@@ -244,7 +243,7 @@ static int ObjectSetProc(ClientData clientData, Tcl_Interp* interp,
 }
     
 static Tcl_Obj* ObjectGetProc(ClientData clientData, Tk_Window tkwin, 
-			      char *widgRec, int offset)
+			      char *widgRec, Tcl_Size offset)
 {
   Tcl_Obj** objectPtrPtr = (Tcl_Obj**)(widgRec + offset);
 
@@ -254,8 +253,7 @@ static Tcl_Obj* ObjectGetProc(ClientData clientData, Tk_Window tkwin,
   return *objectPtrPtr;
 }
 
-static void ObjectFreeProc(ClientData clientData, Tk_Window tkwin,
-			   char *ptr)
+static void ObjectFreeProc(ClientData clientData, Tk_Window tkwin, char *ptr)
 {
   Tcl_Obj* objectPtr = *(Tcl_Obj**)ptr;
   if (objectPtr)

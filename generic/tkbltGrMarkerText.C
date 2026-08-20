@@ -43,50 +43,50 @@ using namespace Blt;
 
 static Tk_OptionSpec optionSpecs[] = {
   {TK_OPTION_ANCHOR, "-anchor", "anchor", "Anchor", 
-   "center", -1, Tk_Offset(TextMarkerOptions, anchor), 0, NULL, 0},
+   "center", -1, offsetof(TextMarkerOptions, anchor), 0, NULL, 0},
   {TK_OPTION_COLOR, "-background", "background", "Background",
-   NULL, -1, Tk_Offset(TextMarkerOptions, fillColor),
+   NULL, -1, offsetof(TextMarkerOptions, fillColor),
    TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_SYNONYM, "-bg", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-background", 0},
   {TK_OPTION_CUSTOM, "-bindtags", "bindTags", "BindTags", 
-   "Text all", -1, Tk_Offset(TextMarkerOptions, tags), 
+   "Text all", -1, offsetof(TextMarkerOptions, tags), 
    TK_OPTION_NULL_OK, &listObjOption, 0},
   {TK_OPTION_CUSTOM, "-coords", "coords", "Coords",
-   NULL, -1, Tk_Offset(TextMarkerOptions, worldPts), 
+   NULL, -1, offsetof(TextMarkerOptions, worldPts), 
    TK_OPTION_NULL_OK, &coordsObjOption, 0},
   {TK_OPTION_STRING, "-element", "element", "Element", 
-   NULL, -1, Tk_Offset(TextMarkerOptions, elemName),
+   NULL, -1, offsetof(TextMarkerOptions, elemName),
    TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_SYNONYM, "-fg", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-foreground", 0},
   {TK_OPTION_SYNONYM, "-fill", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-background", 0},
   {TK_OPTION_FONT, "-font", "font", "Font", 
-   STD_FONT_NORMAL, -1, Tk_Offset(TextMarkerOptions, style.font), 0, NULL, 0},
+   STD_FONT_NORMAL, -1, offsetof(TextMarkerOptions, style.font), 0, NULL, 0},
   {TK_OPTION_COLOR, "-foreground", "foreground", "Foreground",
-   STD_NORMAL_FOREGROUND, -1, Tk_Offset(TextMarkerOptions, style.color),
+   STD_NORMAL_FOREGROUND, -1, offsetof(TextMarkerOptions, style.color),
    0, NULL, 0},
   {TK_OPTION_JUSTIFY, "-justify", "justify", "Justify",
-   "left", -1, Tk_Offset(TextMarkerOptions, style.justify), 0, NULL, 0},
+   "left", -1, offsetof(TextMarkerOptions, style.justify), 0, NULL, 0},
   {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", 
-   "no", -1, Tk_Offset(TextMarkerOptions, hide), 0, NULL, 0},
+   "no", -1, offsetof(TextMarkerOptions, hide), 0, NULL, 0},
   {TK_OPTION_CUSTOM, "-mapx", "mapX", "MapX",
-   "x", -1, Tk_Offset(TextMarkerOptions, xAxis), 0, &xAxisObjOption, 0},
+   "x", -1, offsetof(TextMarkerOptions, xAxis), 0, &xAxisObjOption, 0},
   {TK_OPTION_CUSTOM, "-mapy", "mapY", "MapY", 
-   "y", -1, Tk_Offset(TextMarkerOptions, yAxis), 0, &yAxisObjOption, 0},
+   "y", -1, offsetof(TextMarkerOptions, yAxis), 0, &yAxisObjOption, 0},
   {TK_OPTION_SYNONYM, "-outline", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-foreground", 0},
   {TK_OPTION_DOUBLE, "-rotate", "rotate", "Rotate", 
-   "0", -1, Tk_Offset(TextMarkerOptions, style.angle), 0, NULL, 0},
+   "0", -1, offsetof(TextMarkerOptions, style.angle), 0, NULL, 0},
   {TK_OPTION_STRING, "-text", "text", "Text", 
-   NULL, -1, Tk_Offset(TextMarkerOptions, string), TK_OPTION_NULL_OK, NULL, 0},
+   NULL, -1, offsetof(TextMarkerOptions, string), TK_OPTION_NULL_OK, NULL, 0},
   {TK_OPTION_BOOLEAN, "-under", "under", "Under",
-   "no", -1, Tk_Offset(TextMarkerOptions, drawUnder), 0, NULL, CACHE},
+   "no", -1, offsetof(TextMarkerOptions, drawUnder), 0, NULL, CACHE},
   {TK_OPTION_PIXELS, "-xoffset", "xOffset", "XOffset",
-   "0", -1, Tk_Offset(TextMarkerOptions, xOffset), 0, NULL, 0},
+   "0", -1, offsetof(TextMarkerOptions, xOffset), 0, NULL, 0},
   {TK_OPTION_PIXELS, "-yoffset", "yOffset", "YOffset",
-   "0", -1, Tk_Offset(TextMarkerOptions, yOffset), 0, NULL, 0},
+   "0", -1, offsetof(TextMarkerOptions, yOffset), 0, NULL, 0},
   {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, -1, 0, 0, 0}
 };
 
@@ -273,4 +273,72 @@ void TextMarker::print(PSOutput* psPtr)
 
   TextStyle ts(graphPtr_, &ops->style);
   ts.printText(psPtr, ops->string, anchorPt_.x, anchorPt_.y);
+}
+
+static Tcl_Obj* TextMarkerPdfColorObj(XColor* colorPtr)
+{
+  if (!colorPtr)
+    return Tcl_NewStringObj("", -1);
+
+  char buf[16];
+  snprintf(buf, sizeof(buf), "#%02x%02x%02x",
+	   colorPtr->red >> 8, colorPtr->green >> 8, colorPtr->blue >> 8);
+  return Tcl_NewStringObj(buf, -1);
+}
+
+static Tcl_Obj* TextMarkerPdfAnchorObj(Tk_Anchor anchor)
+{
+  const char* name = "center";
+  switch (anchor) {
+  case TK_ANCHOR_N: name = "n"; break;
+  case TK_ANCHOR_NE: name = "ne"; break;
+  case TK_ANCHOR_E: name = "e"; break;
+  case TK_ANCHOR_SE: name = "se"; break;
+  case TK_ANCHOR_S: name = "s"; break;
+  case TK_ANCHOR_SW: name = "sw"; break;
+  case TK_ANCHOR_W: name = "w"; break;
+  case TK_ANCHOR_NW: name = "nw"; break;
+  case TK_ANCHOR_CENTER:
+  default:
+    break;
+  }
+  return Tcl_NewStringObj(name, -1);
+}
+
+static Tcl_Obj* TextMarkerPdfPointsObj(Point2d* points, int count,
+				       Point2d anchorPt)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<count; ii++) {
+    Tcl_ListObjAppendElement(NULL, listObjPtr,
+			     Tcl_NewDoubleObj(points[ii].x + anchorPt.x));
+    Tcl_ListObjAppendElement(NULL, listObjPtr,
+			     Tcl_NewDoubleObj(points[ii].y + anchorPt.y));
+  }
+
+  return listObjPtr;
+}
+
+void TextMarker::appendPdfData(Tcl_Interp* interp, Tcl_Obj* dictObjPtr)
+{
+  TextMarkerOptions* ops = (TextMarkerOptions*)ops_;
+
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("text", -1),
+		 Tcl_NewStringObj(ops->string ? ops->string : "", -1));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("x", -1),
+		 Tcl_NewDoubleObj(anchorPt_.x));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("y", -1),
+		 Tcl_NewDoubleObj(anchorPt_.y));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("anchor", -1),
+		 TextMarkerPdfAnchorObj(ops->style.anchor));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("angle", -1),
+		 Tcl_NewDoubleObj(ops->style.angle));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("font", -1),
+		 Tcl_NewStringObj(Tk_NameOfFont(ops->style.font), -1));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("foreground", -1),
+		 TextMarkerPdfColorObj(ops->style.color));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("fill", -1),
+		 TextMarkerPdfColorObj(fillGC_ ? ops->fillColor : NULL));
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("background", -1),
+		 TextMarkerPdfPointsObj(outline_, 4, anchorPt_));
 }

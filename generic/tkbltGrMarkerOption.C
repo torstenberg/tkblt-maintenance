@@ -50,7 +50,7 @@ Tk_ObjCustomOption coordsObjOption =
 
 static int CoordsSetProc(ClientData clientData, Tcl_Interp* interp,
 			 Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			 int offset, char* savePtr, int flags)
+			 Tcl_Size offset, char* savePtr, int flags)
 {
   Coords** coordsPtrPtr = (Coords**)(widgRec + offset);
   *(double*)savePtr = *(double*)coordsPtrPtr;
@@ -58,7 +58,7 @@ static int CoordsSetProc(ClientData clientData, Tcl_Interp* interp,
   if (!coordsPtrPtr)
     return TCL_OK;
 
-  int objc;
+  Tcl_Size objc;
   Tcl_Obj** objv;
   if (Tcl_ListObjGetElements(interp, *objPtr, &objc, &objv) != TCL_OK)
     return TCL_ERROR;
@@ -93,7 +93,7 @@ static int CoordsSetProc(ClientData clientData, Tcl_Interp* interp,
 }
 
 static Tcl_Obj* CoordsGetProc(ClientData clientData, Tk_Window tkwin, 
-			      char *widgRec, int offset)
+			      char *widgRec, Tcl_Size offset)
 {
   Coords* coordsPtr = *(Coords**)(widgRec + offset);
 
@@ -114,8 +114,7 @@ static Tcl_Obj* CoordsGetProc(ClientData clientData, Tk_Window tkwin,
   return listObjPtr;
 }
 
-static void CoordsFreeProc(ClientData clientData, Tk_Window tkwin,
-			   char *ptr)
+static void CoordsFreeProc(ClientData clientData, Tk_Window tkwin, char *ptr)
 {
   Coords* coordsPtr = *(Coords**)ptr;
   if (coordsPtr) {
@@ -133,7 +132,7 @@ Tk_ObjCustomOption capStyleObjOption =
 
 static int CapStyleSetProc(ClientData clientData, Tcl_Interp* interp,
 			   Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			   int offset, char* save, int flags)
+			   Tcl_Size offset, char* save, int flags)
 {
   int* ptr = (int*)(widgRec + offset);
 
@@ -147,7 +146,7 @@ static int CapStyleSetProc(ClientData clientData, Tcl_Interp* interp,
 }
 
 static Tcl_Obj* CapStyleGetProc(ClientData clientData, Tk_Window tkwin, 
-			      char *widgRec, int offset)
+				char *widgRec, Tcl_Size offset)
 {
   int* ptr = (int*)(widgRec + offset);
   return Tcl_NewStringObj(Tk_NameOfCapStyle(*ptr), -1);
@@ -161,8 +160,8 @@ Tk_ObjCustomOption joinStyleObjOption =
   };
 
 static int JoinStyleSetProc(ClientData clientData, Tcl_Interp* interp,
-			   Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
-			   int offset, char* save, int flags)
+			    Tk_Window tkwin, Tcl_Obj** objPtr, char* widgRec,
+			    Tcl_Size offset, char* save, int flags)
 {
   int* ptr = (int*)(widgRec + offset);
 
@@ -176,7 +175,7 @@ static int JoinStyleSetProc(ClientData clientData, Tcl_Interp* interp,
 }
 
 static Tcl_Obj* JoinStyleGetProc(ClientData clientData, Tk_Window tkwin, 
-			      char *widgRec, int offset)
+				 char *widgRec, Tcl_Size offset)
 {
   int* ptr = (int*)(widgRec + offset);
   return Tcl_NewStringObj(Tk_NameOfJoinStyle(*ptr), -1);

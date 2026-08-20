@@ -31,6 +31,11 @@
 
 #include "tkbltOp.h"
 
+/* Tcl 8.6 compatibility for APIs that use Tcl_Size in Tcl 8.7/9. */
+#ifndef TCL_SIZE_MAX
+typedef int Tcl_Size;
+#endif
+
 using namespace Blt;
 
 static int BinaryOpSearch(Blt_OpSpec *specs, int nSpecs, const char *string,
@@ -115,7 +120,7 @@ void* Blt::GetOpFromObj(Tcl_Interp* interp, int nSpecs, Blt_OpSpec *specs,
     return NULL;
   }
 
-  int length;
+  Tcl_Size length;
   const char* string = Tcl_GetStringFromObj(objv[operPos], &length);
   if (flags & BLT_OP_LINEAR_SEARCH)
     n = LinearOpSearch(specs, nSpecs, string, length);
@@ -168,4 +173,3 @@ void* Blt::GetOpFromObj(Tcl_Interp* interp, int nSpecs, Blt_OpSpec *specs,
   }
   return specPtr->proc;
 }
-

@@ -68,36 +68,36 @@ extern Tk_ObjCustomOption yAxisObjOption;
 
 static Tk_OptionSpec optionSpecs[] = {
   {TK_OPTION_CUSTOM, "-activepen", "activePen", "ActivePen",
-   "active", -1, Tk_Offset(BarElementOptions, activePenPtr), 
+   "active", -1, offsetof(BarElementOptions, activePenPtr), 
    TK_OPTION_NULL_OK, &penObjOption, LAYOUT},
   {TK_OPTION_SYNONYM, "-background", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-color", 0},
   {TK_OPTION_DOUBLE, "-barwidth", "barWidth", "BarWidth",
-   "0", -1, Tk_Offset(BarElementOptions, barWidth), 0, NULL, LAYOUT},
+   "0", -1, offsetof(BarElementOptions, barWidth), 0, NULL, LAYOUT},
   {TK_OPTION_SYNONYM, "-bd", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-borderwidth", 0},
   {TK_OPTION_SYNONYM, "-bg", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-color", 0},
   {TK_OPTION_CUSTOM, "-bindtags", "bindTags", "BindTags",
-   "all", -1, Tk_Offset(BarElementOptions, tags), 
+   "all", -1, offsetof(BarElementOptions, tags), 
    TK_OPTION_NULL_OK, &listObjOption, 0},
   {TK_OPTION_PIXELS, "-borderwidth", "borderWidth", "BorderWidth",
-   STD_BORDERWIDTH, -1, Tk_Offset(BarElementOptions, builtinPen.borderWidth),
+   STD_BORDERWIDTH, -1, offsetof(BarElementOptions, builtinPen.borderWidth),
    0, NULL, CACHE},
   {TK_OPTION_BORDER, "-color", "color", "color",
-   STD_NORMAL_FOREGROUND, -1, Tk_Offset(BarElementOptions, builtinPen.fill),
+   STD_NORMAL_FOREGROUND, -1, offsetof(BarElementOptions, builtinPen.fill),
    0, NULL, CACHE},
   {TK_OPTION_CUSTOM, "-data", "data", "Data", 
-   NULL, -1, Tk_Offset(BarElementOptions, coords),
+   NULL, -1, offsetof(BarElementOptions, coords),
    TK_OPTION_NULL_OK, &pairsObjOption, RESET},
   {TK_OPTION_COLOR, "-errorbarcolor", "errorBarColor", "ErrorBarColor",
-   NULL, -1, Tk_Offset(BarElementOptions, builtinPen.errorBarColor), 
+   NULL, -1, offsetof(BarElementOptions, builtinPen.errorBarColor), 
    TK_OPTION_NULL_OK, NULL, CACHE},
   {TK_OPTION_PIXELS,"-errorbarwidth", "errorBarWidth", "ErrorBarWidth",
-   "1", -1, Tk_Offset(BarElementOptions, builtinPen.errorBarLineWidth),
+   "1", -1, offsetof(BarElementOptions, builtinPen.errorBarLineWidth),
    0, NULL, CACHE},
   {TK_OPTION_PIXELS, "-errorbarcap", "errorBarCap", "ErrorBarCap", 
-   "0", -1, Tk_Offset(BarElementOptions, builtinPen.errorBarCapWidth),
+   "0", -1, offsetof(BarElementOptions, builtinPen.errorBarCapWidth),
    0, NULL, LAYOUT},
   {TK_OPTION_SYNONYM, "-fg", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-outline", 0},
@@ -106,82 +106,82 @@ static Tk_OptionSpec optionSpecs[] = {
   {TK_OPTION_SYNONYM, "-foreground", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-outline", 0},
   {TK_OPTION_BOOLEAN, "-hide", "hide", "Hide", 
-   "no", -1, Tk_Offset(BarElementOptions, hide), 0, NULL, LAYOUT},
+   "no", -1, offsetof(BarElementOptions, hide), 0, NULL, LAYOUT},
   {TK_OPTION_STRING, "-label", "label", "Label",
-   NULL, -1, Tk_Offset(BarElementOptions, label), 
+   NULL, -1, offsetof(BarElementOptions, label), 
    TK_OPTION_NULL_OK, NULL, LAYOUT},
   {TK_OPTION_RELIEF, "-legendrelief", "legendRelief", "LegendRelief",
-   "flat", -1, Tk_Offset(BarElementOptions, legendRelief), 0, NULL, LAYOUT},
+   "flat", -1, offsetof(BarElementOptions, legendRelief), 0, NULL, LAYOUT},
   {TK_OPTION_CUSTOM, "-mapx", "mapX", "MapX", 
-   "x", -1, Tk_Offset(BarElementOptions, xAxis), 0, &xAxisObjOption, RESET},
+   "x", -1, offsetof(BarElementOptions, xAxis), 0, &xAxisObjOption, RESET},
   {TK_OPTION_CUSTOM, "-mapy", "mapY", "MapY",
-   "y", -1, Tk_Offset(BarElementOptions, yAxis), 0, &yAxisObjOption, RESET},
+   "y", -1, offsetof(BarElementOptions, yAxis), 0, &yAxisObjOption, RESET},
   {TK_OPTION_COLOR, "-outline", "outline", "Outline",
-   NULL, -1, Tk_Offset(BarElementOptions, builtinPen.outlineColor),
+   NULL, -1, offsetof(BarElementOptions, builtinPen.outlineColor),
    TK_OPTION_NULL_OK, NULL, CACHE},
   {TK_OPTION_CUSTOM, "-pen", "pen", "Pen", 
-   NULL, -1, Tk_Offset(BarElementOptions, normalPenPtr), 
+   NULL, -1, offsetof(BarElementOptions, normalPenPtr), 
    TK_OPTION_NULL_OK, &penObjOption, LAYOUT},
   {TK_OPTION_RELIEF, "-relief", "relief", "Relief",
-   "raised", -1, Tk_Offset(BarElementOptions, builtinPen.relief), 
+   "raised", -1, offsetof(BarElementOptions, builtinPen.relief), 
    0, NULL, LAYOUT},
   {TK_OPTION_STRING_TABLE, "-showerrorbars", "showErrorBars", "ShowErrorBars",
-   "both", -1, Tk_Offset(BarElementOptions, builtinPen.errorBarShow), 
+   "both", -1, offsetof(BarElementOptions, builtinPen.errorBarShow), 
    0, &fillObjOption, LAYOUT},
   {TK_OPTION_STRING_TABLE, "-showvalues", "showValues", "ShowValues",
-   "none", -1, Tk_Offset(BarElementOptions, builtinPen.valueShow), 
+   "none", -1, offsetof(BarElementOptions, builtinPen.valueShow), 
    0, &fillObjOption, CACHE},
   {TK_OPTION_STRING, "-stack", "stack", "Stack", 
-   NULL, -1, Tk_Offset(BarElementOptions, groupName),
+   NULL, -1, offsetof(BarElementOptions, groupName),
    TK_OPTION_NULL_OK, NULL, RESET},
   {TK_OPTION_CUSTOM, "-styles", "styles", "Styles",
-   "", -1, Tk_Offset(BarElementOptions, stylePalette), 
+   "", -1, offsetof(BarElementOptions, stylePalette), 
    0, &styleObjOption, RESET},
   {TK_OPTION_ANCHOR, "-valueanchor", "valueAnchor", "ValueAnchor",
-   "s", -1, Tk_Offset(BarElementOptions, builtinPen.valueStyle.anchor),
+   "s", -1, offsetof(BarElementOptions, builtinPen.valueStyle.anchor),
    0, NULL, CACHE},
   {TK_OPTION_COLOR, "-valuecolor", "valueColor", "ValueColor",
    STD_NORMAL_FOREGROUND, -1, 
-   Tk_Offset(BarElementOptions,builtinPen.valueStyle.color), 0, NULL, CACHE},
+   offsetof(BarElementOptions,builtinPen.valueStyle.color), 0, NULL, CACHE},
   {TK_OPTION_FONT, "-valuefont", "valueFont", "ValueFont",
-   STD_FONT_SMALL, -1, Tk_Offset(BarElementOptions, builtinPen.valueStyle.font),
+   STD_FONT_SMALL, -1, offsetof(BarElementOptions, builtinPen.valueStyle.font),
    0, NULL, CACHE},
   {TK_OPTION_STRING, "-valueformat", "valueFormat", "ValueFormat",
-   "%g", -1, Tk_Offset(BarElementOptions, builtinPen.valueFormat),
+   "%g", -1, offsetof(BarElementOptions, builtinPen.valueFormat),
    TK_OPTION_NULL_OK, NULL, CACHE},
   {TK_OPTION_DOUBLE, "-valuerotate", "valueRotate", "ValueRotate",
-   "0", -1, Tk_Offset(BarElementOptions, builtinPen.valueStyle.angle),
+   "0", -1, offsetof(BarElementOptions, builtinPen.valueStyle.angle),
    0, NULL, CACHE},
   {TK_OPTION_CUSTOM, "-weights", "weights", "Weights",
-   NULL, -1, Tk_Offset(BarElementOptions, w), 
+   NULL, -1, offsetof(BarElementOptions, w), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_SYNONYM, "-x", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-xdata", 0},
   {TK_OPTION_CUSTOM, "-xdata", "xData", "XData", 
-   NULL, -1, Tk_Offset(BarElementOptions, coords.x), 
+   NULL, -1, offsetof(BarElementOptions, coords.x), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-xerror", "xError", "XError", 
-   NULL, -1, Tk_Offset(BarElementOptions, xError), 
+   NULL, -1, offsetof(BarElementOptions, xError), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-xhigh", "xHigh", "XHigh", 
-   NULL, -1, Tk_Offset(BarElementOptions, xHigh), 
+   NULL, -1, offsetof(BarElementOptions, xHigh), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-xlow", "xLow", "XLow", 
-   NULL, -1, Tk_Offset(BarElementOptions, xLow), 
+   NULL, -1, offsetof(BarElementOptions, xLow), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_SYNONYM, "-y", NULL, NULL, 
    NULL, 0, -1, 0, (ClientData)"-ydata", 0},
   {TK_OPTION_CUSTOM, "-ydata", "yData", "YData", 
-   NULL, -1, Tk_Offset(BarElementOptions, coords.y), 
+   NULL, -1, offsetof(BarElementOptions, coords.y), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-yerror", "yError", "YError", 
-   NULL, -1, Tk_Offset(BarElementOptions, yError), 
+   NULL, -1, offsetof(BarElementOptions, yError), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-yhigh", "yHigh", "YHigh",
-   NULL, -1, Tk_Offset(BarElementOptions, yHigh), 
+   NULL, -1, offsetof(BarElementOptions, yHigh), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_CUSTOM, "-ylow", "yLow", "YLow", 
-   NULL, -1, Tk_Offset(BarElementOptions, yLow), 
+   NULL, -1, offsetof(BarElementOptions, yLow), 
    TK_OPTION_NULL_OK, &valuesObjOption, RESET},
   {TK_OPTION_END, NULL, NULL, NULL, NULL, 0, -1, 0, 0, 0}
 };
@@ -216,7 +216,7 @@ BarElement::BarElement(Graph* graphPtr, const char* name, Tcl_HashEntry* hPtr)
 
   // this is an option and will be freed via Tk_FreeConfigOptions
   // By default an element's name and label are the same
-  ops->label = Tcl_Alloc(strlen(name)+1);
+  ops->label = (const char*)Tcl_Alloc(strlen(name)+1);
   if (name)
     strcpy((char*)ops->label,(char*)name);
 
@@ -1314,3 +1314,95 @@ void BarElement::printValues(PSOutput* psPtr, BarPen* penPtr,
   }
 }
 
+static Tcl_Obj* BarPdfColorObj(XColor* colorPtr)
+{
+  if (!colorPtr)
+    return Tcl_NewStringObj("", -1);
+
+  char buf[16];
+  snprintf(buf, sizeof(buf), "#%02x%02x%02x",
+	   colorPtr->red >> 8, colorPtr->green >> 8, colorPtr->blue >> 8);
+  return Tcl_NewStringObj(buf, -1);
+}
+
+static Tcl_Obj* BarPdfSegmentsObj(GraphSegments* segmentsPtr)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<segmentsPtr->length; ii++) {
+    Tcl_Obj* segObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segmentsPtr->segments[ii].p.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segmentsPtr->segments[ii].p.y));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segmentsPtr->segments[ii].q.x));
+    Tcl_ListObjAppendElement(NULL, segObjPtr,
+			     Tcl_NewDoubleObj(segmentsPtr->segments[ii].q.y));
+    Tcl_ListObjAppendElement(NULL, listObjPtr, segObjPtr);
+  }
+
+  return listObjPtr;
+}
+
+static Tcl_Obj* BarPdfRectanglesObj(Rectangle* bars, int count)
+{
+  Tcl_Obj* listObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+  for (int ii=0; ii<count; ii++) {
+    Tcl_Obj* rectObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+    Tcl_ListObjAppendElement(NULL, rectObjPtr, Tcl_NewIntObj(bars[ii].x));
+    Tcl_ListObjAppendElement(NULL, rectObjPtr, Tcl_NewIntObj(bars[ii].y));
+    Tcl_ListObjAppendElement(NULL, rectObjPtr,
+			     Tcl_NewIntObj((int)bars[ii].width));
+    Tcl_ListObjAppendElement(NULL, rectObjPtr,
+			     Tcl_NewIntObj((int)bars[ii].height));
+    Tcl_ListObjAppendElement(NULL, listObjPtr, rectObjPtr);
+  }
+
+  return listObjPtr;
+}
+
+void BarElement::appendPdfStyleData(Tcl_Interp* interp, Tcl_Obj* dictObjPtr)
+{
+  BarElementOptions* ops = (BarElementOptions*)ops_;
+  Tcl_Obj* stylesObjPtr = Tcl_NewListObj(0, (Tcl_Obj**)NULL);
+
+  for (ChainLink* link = Chain_FirstLink(ops->stylePalette); link;
+       link = Chain_NextLink(link)) {
+    BarStyle* stylePtr = (BarStyle*)Chain_GetValue(link);
+    BarPen* penPtr = (BarPen*)stylePtr->penPtr;
+    BarPenOptions* pops = (BarPenOptions*)penPtr->ops();
+    XColor* fillColor = pops->fill ? Tk_3DBorderColor(pops->fill) : NULL;
+    XColor* errorColor = pops->errorBarColor ?
+      pops->errorBarColor : pops->outlineColor;
+    if (!errorColor)
+      errorColor = fillColor;
+
+    Tcl_Obj* styleObjPtr = Tcl_NewDictObj();
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("fill", -1),
+		   BarPdfColorObj(fillColor));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("outline", -1),
+		   BarPdfColorObj(pops->outlineColor));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("borderwidth", -1),
+		   Tcl_NewIntObj(pops->borderWidth));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("bars", -1),
+		   BarPdfRectanglesObj(stylePtr->bars, stylePtr->nBars));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("errorbarcolor", -1),
+		   BarPdfColorObj(errorColor));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("errorbarwidth", -1),
+		   Tcl_NewIntObj(pops->errorBarLineWidth));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("errorbarcap", -1),
+		   Tcl_NewIntObj(stylePtr->errorBarCapWidth));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("xerrors", -1),
+		   (pops->errorBarShow & SHOW_X) ?
+		   BarPdfSegmentsObj(&stylePtr->xeb) :
+		   Tcl_NewListObj(0, (Tcl_Obj**)NULL));
+    Tcl_DictObjPut(interp, styleObjPtr, Tcl_NewStringObj("yerrors", -1),
+		   (pops->errorBarShow & SHOW_Y) ?
+		   BarPdfSegmentsObj(&stylePtr->yeb) :
+		   Tcl_NewListObj(0, (Tcl_Obj**)NULL));
+    Tcl_ListObjAppendElement(interp, stylesObjPtr, styleObjPtr);
+  }
+
+  Tcl_DictObjPut(interp, dictObjPtr, Tcl_NewStringObj("styles", -1),
+		 stylesObjPtr);
+}
