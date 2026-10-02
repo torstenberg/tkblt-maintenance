@@ -30,6 +30,16 @@ command, or the C API.
 Changes
 -------
 
+### 3.3.1 (2026-10-02)
+
+Fixes `package require Tkblt` failing on Tcl 9: `pkgIndex.tcl.in`'s `load`
+command passed the package name through verbatim as the init-function
+prefix (`tkblt`, from `@PACKAGE_NAME@`), but Tcl 9's `load` no longer
+capitalizes that argument before forming `<Name>_Init` the way Tcl 8 did,
+so it looked for `tkblt_Init` instead of the library's actual
+`Tkblt_Init`. Fixed by wrapping `@PACKAGE_NAME@` in `[string totitle ...]`
+in the template.
+
 ### 3.3 (2026-08-20)
 
 This is a new fork, continuing maintenance of the project for SAOImageDS9
